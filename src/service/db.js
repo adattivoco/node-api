@@ -8,9 +8,10 @@ mongoose.Promise = global.Promise
 const connectToDb = () => {
   debug('db initializing')
   if (process.env.MONGO_DEBUG === 'true') {
+    debug('db in debug mode')
     mongoose.set('debug', true)
   }
-  return mongoose.connect(process.env.MONGO_URI).then(() => {
+  return mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true }).then(() => {
     debug('db started')
     return Promise.resolve()
   })

@@ -1,6 +1,6 @@
 var _ = require('lodash')
-var debug = require('debug')('aim:api')
-var logerror = require('debug')('aim:error')
+var debug = require('debug')('adattivo:controller-utils')
+var logerror = require('debug')('adattivo:error')
 
 const transformQuery = (Model, additionalQuery) => {
   if (!additionalQuery) {
@@ -39,14 +39,13 @@ export const paginate = (Model, req, _options = {}, additionalQuery = {}) => {
 
 const errorToJson = (error) => {
   if (_.isString(error)) {
-    var result = {
+    let result = {
       message: error
     }
     return result
   } else {
-    var result = {
-      ...error,
-      message: (error.message) ? error.message : '' + error
+    let result = {
+      message: (error.message) || ('' + error)
     }
     delete result.toJSON
     delete result.result
@@ -54,35 +53,27 @@ const errorToJson = (error) => {
   }
 }
 
-export const errorResponse = (e, res, normalize = false) => {
+export const errorResponse = (e, res) => {
   const {
     req
   } = res
-  logerror(`${req.method} ${req.baseUrl}`, e, e.stack)
-  if (normalize) {
-    if (_.isString(e)) {
-      res.status(400).json(errorToJson({
-        message: e
-      }))
-    } else {
-      res.status(400).json(errorToJson({
-        ...e,
-        message: normalizeError(e)
-      }))
-    }
-  } else {
-    res.status(400).json(errorToJson(e))
-  }
-}
-
-// this method includes handling for mongoose specific errors with types
-const normalizeError = error => {
-  if (error.errors) {
+  const status = e.status || 400
+  var message = ''
+  if (_.isString(e)) {
+    message = e
+  } else if (e.errors) {
     let arr = []
-    for (let key of Object.keys(error.errors)) {
-      arr.push(error.errors[key].message)
+    for (let key of Object.keys(e.errors)) {
+      arr.push(e.errors[key].message)
     }
-    return `${arr.join(' and ')}`
+    message = `${arr.join(' and ')}`
+  } else {
+    message = e.message || ('' + e)
+    delete message.toJSON
+    delete message.result
   }
-  return error.message
+  debug(status)
+  debug(message)
+  logerror(`${req.method} ${req.baseUrl}`, status, message)
+  res.status(status).json({ message: message })
 }

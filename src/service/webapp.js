@@ -1,6 +1,6 @@
 import bodyParser from 'body-parser'
 import routes from '../routes'
-//import { setupAuth } from '../lib/auth-util';
+import { setupAuth } from '../lib/auth-util'
 
 const debug = require('debug')('adattivo:service:webapp')
 const logerror = require('debug')('adattivo:error')
@@ -17,7 +17,7 @@ const setupWebapp = (app) => {
     next()
   })
 
-  //setupAuth()
+  setupAuth()
   app.use('/', routes)
 
   const port = process.env.PORT ? parseInt(process.env.PORT) : 3005

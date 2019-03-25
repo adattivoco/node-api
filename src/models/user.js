@@ -1,76 +1,164 @@
 import mongoose from 'mongoose'
 import bcrypt from 'bcrypt'
+import crypto from 'crypto'
+import validate from 'mongoose-validator'
+import uniqueValidator from 'mongoose-unique-validator'
+import jwt from 'jsonwebtoken'
+
+//import Notification from './notification'
+//import NotificationType from './notification-type'
 
 // Setup schema
 var schema = mongoose.Schema({
-  name: {
+  firstName: {
+    type: String,
+    required: true
+  },
+  lastName: {
     type: String,
     required: true
   },
   email: {
     type: String,
-    required: true
+    unique: true,
+    required: true,
+    trim: true,
+    validate: [
+      validate({
+        validator: 'isEmail',
+        message: 'Invalid email address'
+      })
+    ]
   },
-  password_digest: {
-    type: String,
-    required: true
-  },
-  _type: {
+  type: {
     type: String,
     required: true,
-    default: 'CompanyUser'
+    enum: ['user', 'admin'],
+    default: 'user'
   },
-  auth_token: String,
-  reset_password_token: String,
-  reset_password_sent_at: Date,
-  sign_in_count: {
+  status: {
+    type: String,
+    required: true,
+    enum: ['pending', 'active', 'inactive', 'locked'],
+    default: 'pending'
+  },
+  address: {
+    street1: String,
+    street2: String,
+    city: String,
+    state: String,
+    postalCode: String
+  },
+  bornAt: Date,
+  passwordHash: String,
+  confirmationCode: String,
+  confirmationAt: Date,
+  forgotPasswordToken: String,
+  forgotPasswordAt: Date,
+  signInCount: {
     type: Number,
     default: 0
   },
-  last_sign_in_at: Date,
-  u_at: Date,
-  c_at: Date
+  lastSignInAt: Date,
+  updatedAt: Date,
+  createdAt: Date
 })
 schema.methods = {
-  authenticate(password) {
+  comparePassword(password) {
     return bcrypt.compare(password, this.passwordHash).then((result) => {
       if (result) {
-        return Promise.resolve()
+        return Promise.resolve(this)
       } else {
-        return Promise.reject()
+        return Promise.reject({
+          status: 401,
+          message: 'Invalid email or password'
+        })
       }
     })
   },
-  authorize(authToken) {
-    return this.auth_token === authToken
+  sendConfirmationToken() {
+    // const self = this;
+    // return NotificationType.findOne({
+    //   name: 'email_confirmation'
+    // }).then((notificationType) => {
+    //   return new Notification({
+    //     notificationType: notificationType._id,
+    //     user: self._id,
+    //     properties: {
+    //       confirmationToken: this.confirmationToken
+    //     }
+    //   }).save()
+    // }).then((notification) => {
+    //   return notification.queue()
+    // })
+  },
+  sendResetPW(clientURL) {
+    // const self = this;
+    // return NotificationType.findOne({
+    //   name: 'email_confirmation'
+    // }).then((notificationType) => {
+    //   return new Notification({
+    //     notificationType: notificationType._id,
+    //     user: self._id,
+    //     properties: {
+    //       confirmationToken: this.confirmationToken
+    //     }
+    //   }).save()
+    // }).then((notification) => {
+    //   return notification.queue()
+    // })
+  },
+  buildConfirmationCode() {
+    var buffer = crypto.randomBytes(3)
+    return buffer.toString('hex')
+  },
+  buildForgotPasswordToken() {
+    var buffer = crypto.randomBytes(6)
+    return buffer.toString('hex')
+  },
+  buildJWT() {
+    return jwt.sign(this.toJSON(), process.env.JWT_SECRET, { expiresIn: '7d' })
   }
 }
 schema.pre('save', function (next) {
-  this.u_at = new Date()
+  this.updatedAt = new Date()
   if (this.email) {
     this.email = this.email.toLowerCase()
   }
   if (!this.isNew) {
     return next()
   } else {
-    this.c_at = this.u_at
+    this.createdAt = this.updatedAt
     next()
   }
 })
 schema.set('toJSON', {
   virtuals: true,
   transform: function (doc, ret, options) {
-    delete ret.password_digest
-    delete ret.auth_token
-    delete ret.reset_password_token
-    delete ret.reset_password_sent_at
+    delete ret.passwordHash
+    delete ret.forgotPasswordToken
+    delete ret.forgotPasswordAt
+    delete ret.confirmationCode
+    delete ret.confirmationAt
     return ret
   }
 })
 schema.virtual('password').set(function (password) {
   this._password = password
-  this.password_digest = bcrypt.hashSync(password, parseInt(process.env.PASSWORD_HASH_SALT))
+  this.passwordHash = bcrypt.hashSync(password, parseInt(process.env.PASSWORD_HASH_SALT))
 })
+schema.virtual('fullname').get(function () {
+  return `${this.firstName} ${this.lastName}`
+})
+
+schema.plugin(uniqueValidator, { message: 'User with that email already created. Please login with that email or choose another.' })
+
+// indexes
+schema.index({forgotPasswordToken: 1})
+schema.index({confirmationCode: 1})
+schema.index({type: 1})
+schema.index({email: 1})
+
 // Export User model
 var User = module.exports = mongoose.model('user', schema)
 
