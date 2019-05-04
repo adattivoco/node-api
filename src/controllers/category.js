@@ -4,7 +4,7 @@ import {errorResponse} from '../lib/controller-util'
 const debug = require('debug')('adattivo:controllers:categories')
 const logerror = require('debug')('adattivo:controllers:categories')
 
-// Handle index actions
+// get or /categories
 exports.index = (req, res) => {
   var sort = {}
   if (req.query.sort === 'name') {
@@ -37,7 +37,7 @@ exports.index = (req, res) => {
   }).sort(sort)
 }
 
-// Handle create category actions
+// post /categories
 exports.new = (req, res) => {
   var category = new Category()
   category.name = req.body.name ? req.body.name : category.name
@@ -51,11 +51,11 @@ exports.new = (req, res) => {
   })
 }
 
-// Handle view category info
+// get /categories/:catId
 exports.view = (req, res) => {
-  Category.findOne({ key: req.params.category_id }, (err, category) => {
+  Category.findOne({ key: req.params.catId }, (err, category) => {
     if (err) {
-      Category.findById(req.params.category_id, (err, category) => {
+      Category.findById(req.params.catId, (err, category) => {
         if (err) {
           errorResponse(err, res)
         } else {
@@ -68,9 +68,9 @@ exports.view = (req, res) => {
   })
 }
 
-// Handle update category info
+// put or patch /categories/:catId
 exports.update = (req, res) => {
-  Category.findById(req.params.category_id, (err, category) => {
+  Category.findById(req.params.catId, (err, category) => {
     if (err) {
       errorResponse(err, res)
     } else {
@@ -85,6 +85,19 @@ exports.update = (req, res) => {
         }
       })
     }
+  })
+}
+
+// delete /categories/:catId
+exports.delete = (req, res) => {
+  Category.remove({
+    _id: req.params.catId
+  }).then(cat => {
+    return Category.find({}).sort({ name: 1 })
+  }).then(cats => {
+    res.json(cats)
+  }).catch((error) => {
+    errorResponse(error, res)
   })
 }
 
@@ -111,7 +124,7 @@ exports.products = (req, res) => {
   //   render json: { error: 'Category not found. Please try again.' }, status: :not_found
   // end
   debug('begin')
-  Category.findOne({ key: req.params.category_id }, (err, category) => {
+  Category.findOne({ key: req.params.catId }, (err, category) => {
     if (err) {
       errorResponse(err, res)
     } else {

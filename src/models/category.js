@@ -43,6 +43,12 @@ var schema = mongoose.Schema({
   c_at: Date
 })
 
+schema.index({ type: -1, sort_order: 1, name: 1 })
+schema.index({ active: 1, preferred: 1, sort_order: 1, name: 1 })
+schema.index({ type: 1, preferred: 1, sort_order: 1, name: 1 })
+schema.index({ key: 1 })
+schema.index({ products: 1 })
+
 // Export User model
 var Category = module.exports = mongoose.model('category', schema)
 

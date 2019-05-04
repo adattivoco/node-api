@@ -6,6 +6,8 @@ router.route('/health').get(healthController.health)
 
 router.use('/users', require('./users'))
 
+router.use('/categories', require('./categories'))
+
 router.use('/auth', require('./auth'))
 
 router.use((req, res) => {
