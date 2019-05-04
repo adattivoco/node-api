@@ -11,7 +11,13 @@ const connectToDb = () => {
     debug('db in debug mode')
     mongoose.set('debug', true)
   }
-  return mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true }).then(() => {
+  const dbOptions = {
+    socketTimeoutMS: 30000,
+    reconnectTries: 30000,
+    keepAlive: true,
+    useNewUrlParser: true
+  }
+  return mongoose.connect(process.env.MONGO_URI, dbOptions).then(() => {
     debug('db started')
     return Promise.resolve()
   })

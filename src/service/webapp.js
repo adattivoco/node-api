@@ -20,7 +20,7 @@ const setupWebapp = (app) => {
   setupAuth()
   app.use('/', routes)
 
-  const port = process.env.PORT ? parseInt(process.env.PORT) : 3005
+  const port = process.env.PORT ? parseInt(process.env.PORT) : 3000
 
   const server = app.listen(port, () => {
     debug(`web container started - ${port}`)

@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-import bcrypt from 'bcrypt'
+import bcrypt from 'bcryptjs'
 import crypto from 'crypto'
 import validate from 'mongoose-validator'
 import uniqueValidator from 'mongoose-unique-validator'
