@@ -5,10 +5,12 @@ const Schema = mongoose.Schema
 var schema = mongoose.Schema({
   name: {
     type: String,
+    trim: true,
     required: true
   },
   key: {
     type: String,
+    trim: true,
     required: true
   },
   active: {
@@ -20,32 +22,16 @@ var schema = mongoose.Schema({
   sale_type: {
     type: String,
     required: true,
+    trim: true,
     default: 'INFORMATIONAL',
-    validate: {
-      isAsync: true,
-      validator: (type, next) => {
-        if (type === 'RESELLER' || type === 'AFFILIATE' || type === 'INFORMATIONAL') {
-          next(true)
-        } else {
-          next(false, 'Must be RESELLER, AFFILIATE, OR INFORMATIONAL')
-        }
-      }
-    }
+    enum: ['RESELLER', 'INFORMATIONAL', 'AFFILIATE']
   },
   price_type: {
     type: String,
     required: true,
+    trim: true,
     default: 'COMPANY',
-    validate: {
-      isAsync: true,
-      validator: (type, next) => {
-        if (type === 'COMPANY' || type === 'USER' || type === 'ONE_TIME') {
-          next(true)
-        } else {
-          next(false, 'Must be COMPANY, USER, OR ONE_TIME')
-        }
-      }
-    }
+    enum: ['RECURRING', 'ONE_TIME']
   },
   price_options: {
     type: Array,
@@ -55,6 +41,7 @@ var schema = mongoose.Schema({
   click_thru: String,
   brand_color: {
     type: String,
+    trim: true,
     default: '326295'
   },
   expert: {

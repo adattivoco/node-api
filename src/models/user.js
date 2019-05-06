@@ -12,10 +12,12 @@ import jwt from 'jsonwebtoken'
 var schema = mongoose.Schema({
   firstName: {
     type: String,
+    trim: true,
     required: true
   },
   lastName: {
     type: String,
+    trim: true,
     required: true
   },
   email: {

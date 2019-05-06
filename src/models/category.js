@@ -4,6 +4,7 @@ import mongoose from 'mongoose'
 var schema = mongoose.Schema({
   name: {
     type: String,
+    trim: true,
     required: true
   },
   active: {
@@ -13,19 +14,13 @@ var schema = mongoose.Schema({
   type: {
     type: String,
     required: true,
-    validate: {
-      isAsync: true,
-      validator: (type, next) => {
-        if (type === 'CATEGORY' || type === 'VERTICAL' || type === 'BUNDLE') {
-          next(true)
-        } else {
-          next(false, 'Must be CATEGORY, VERTICAL, OR BUNDLE')
-        }
-      }
-    }
+    trim: true,
+    default: 'CATEGORY',
+    enum: ['CATEGORY', 'VERTICAL', 'BUNDLE']
   },
   key: {
     type: String,
+    trim: true,
     required: true
   },
   summary: String,

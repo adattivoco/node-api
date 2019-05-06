@@ -15,6 +15,7 @@ const connectToDb = () => {
     socketTimeoutMS: 30000,
     reconnectTries: 30000,
     keepAlive: true,
+    useCreateIndex: true,
     useNewUrlParser: true
   }
   return mongoose.connect(process.env.MONGO_URI, dbOptions).then(() => {
